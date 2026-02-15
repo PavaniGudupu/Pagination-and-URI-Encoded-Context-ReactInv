@@ -7,6 +7,7 @@ import "../Styles/Dashboard.css";
 import axios from "axios";
 import Navbar from "../Partials/Navbar";
 import { toast } from "react-toastify";
+import { useLocation } from "react-router-dom";
 
 const Dashboard = () => {
   const [search, setSearch] = useState("");
@@ -17,6 +18,7 @@ const Dashboard = () => {
   const [lastEditId, setLastEditId] = useState(null);
 
   const size = 10;
+  const location = useLocation();
 
   // ✅ Fetch products
   const fetchProducts = useCallback(async () => {
@@ -44,17 +46,29 @@ const Dashboard = () => {
 
   // ✅ Restore page, search, filter & highlight after edit
   useEffect(() => {
-    const savedCtx = localStorage.getItem("dashboardCtx");
-
-    if (savedCtx) {
-      const { page, search, filterCategory, editedId } = JSON.parse(savedCtx);
-
-      setCurrentPage(page);
-      setSearch(search);
-      setFilterCategory(filterCategory);
-      setLastEditId(editedId);
-
-      localStorage.removeItem("dashboardCtx");
+    const searchParams = new URLSearchParams(location.search);
+    const ctx = searchParams.get("ctx");
+    if (ctx) {
+      try {
+        const decodedString = atob(decodeURIComponent(ctx));
+        const parsed = JSON.parse(decodedString);
+        const { page, search, filterCategory, editedId } = parsed;
+        if (page) {
+          setCurrentPage(page);
+        }
+        if (search) {
+          setSearch(search);
+        }
+        if (filterCategory) {
+          setFilterCategory(filterCategory);
+        }
+        if (editedId) {
+          setLastEditId(editedId);
+        }
+      } catch (error) {
+        console.log(error.message);
+        toast.error(error.message);
+      }
     }
   }, []);
 
@@ -94,13 +108,16 @@ const Dashboard = () => {
   };
 
   // Encode row data
-  const encodeCtx = (obj) => encodeURIComponent(btoa(JSON.stringify(obj)));
+  const encodeCtx = (obj) => 
+    encodeURIComponent(btoa(JSON.stringify(obj)));
 
   return (
     <div className="product-section">
       <Navbar />
 
       <div className="container">
+        <br />
+        <br />
         <h1 className="page-heading">
           <FaListAlt /> Product List
         </h1>
@@ -147,7 +164,7 @@ const Dashboard = () => {
 
           <tbody>
             {data.map((item) => {
-              const ctx = encodeCtx(item);
+              //const ctx = encodeCtx(item);
               return (
                 <tr
                   key={item.id}
@@ -162,7 +179,9 @@ const Dashboard = () => {
                   <td>{item.classification}</td>
                   <td>{item.size}</td>
                   <td>
-                    <Link
+                    {/* 
+           
+           <Link
                       to={`/EditProduct?ctx=${ctx}`}
                       onClick={() => {
                         localStorage.setItem(
@@ -176,6 +195,47 @@ const Dashboard = () => {
                         );
                       }}
                     >
+                      <button className="btn btn-primary">
+                        <RiEdit2Fill /> Edit
+                      </button>
+                    </Link>
+
+                    const item = { id: 1, name: "Soap" };
+                    const newObj = { product: item, page: 2 };
+           
+           */}
+
+                    <Link
+                      to={`/EditProduct?ctx=${encodeCtx({
+                        product: item,
+                        page: currentPage,
+                        search,
+                        filterCategory,
+                        editedId: item.id,
+                      })}`}
+                    >
+
+{/* {
+  product: {
+    id: 5,
+    productName: "Shirt",
+    category: "Clothing",
+    categoryId: 2,
+    mrp: 500,
+    sp: 450,
+    cp: 300,
+    classification: "Men",
+    size: "L"
+  },
+  page: 2,
+  search: "shirt",
+  filterCategory: "p.product_name",
+  editedId: 5
+} */}
+
+
+
+
                       <button className="btn btn-primary">
                         <RiEdit2Fill /> Edit
                       </button>

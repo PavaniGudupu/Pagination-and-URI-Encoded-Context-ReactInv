@@ -13,6 +13,7 @@ export const EditProduct = () => {
 const location = useLocation();
 
 const [productId, setProductId] = useState(null);
+const [dashboardState, setDashboardState] = useState(null);
 
 const [formData, setFormData] = useState({
   product_name: "",
@@ -31,28 +32,40 @@ useEffect(() => {
 
 
   const searchParams = new URLSearchParams(location.search);
-  const ctx = searchParams.get("ctx");
+  const ctx = searchParams.get("ctx"); // takes value
 
-  if(ctx) {
-    try{
+if (ctx) {
+  try {
     const decodedString = atob(decodeURIComponent(ctx));
-    const product = JSON.parse(decodedString);
-      setFormData({
-        product_name: product.productName || "",
-        category_id: product.categoryId || "",
-        mrp: product.mrp || "",
-        sp: product.sp || "",
-        cp: product.cp || "",
-        classification: product.classification || "",
-        size: product.size || "",
-      });
-      setProductId(product.id);
-      return;
-    } catch(error) {
-      console.error("Decode failed", error);
-      toast.error("Invalid product data");
-    }
+    const parsed = JSON.parse(decodedString);
+
+    const product = parsed.product;
+
+    setDashboardState({
+      page: parsed.page,
+      search: parsed.search,
+      filterCategory: parsed.filterCategory,
+      editedId: parsed.editedId,
+    });
+
+    setFormData({
+      product_name: product.productName || "",
+      category_id: product.categoryId || "",
+      mrp: product.mrp || "",
+      sp: product.sp || "",
+      cp: product.cp || "",
+      classification: product.classification || "",
+      size: product.size || "",
+    });
+
+    setProductId(product.id);
+    return;
+  } catch (error) {
+    console.error("Decode failed", error);
+    toast.error("Invalid product data");
   }
+}
+
 
 
 
@@ -131,9 +144,17 @@ const handleSubmit = async (e) => {
       return;
     }
 
-    localStorage.setItem("lastEditedId", Number(productId));
+const updatedState = {
+  ...dashboardState,
+  editedId: productId
+};
+
+const encoded = encodeURIComponent(
+  btoa(JSON.stringify(updatedState))
+);
+
     toast.success("Product Updated Successfully");
-    navigate("/dashboard");
+    navigate(`/dashboard?ctx=${encoded}`);
   } catch (error) {
     console.error("Error update product: ", error);
     alert("Error updating product");
