@@ -1,4 +1,4 @@
-# React Pagination & URI Encoded Component – Inventory Dashboard
+# URI Encoded & Decoded Component – React Inventory
 
 
 A frontend Inventory Management Dashboard built with **React.js**, implementing advanced **pagination handling** and **URI encoded component communication** to preserve user state and improve navigation experience.
